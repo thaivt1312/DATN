@@ -1,5 +1,5 @@
-import { Stack, Button, Divider } from '@mui/material'
-import { useState } from "react";
+import { Stack, Button } from '@mui/material'
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 import { onMessageListener } from "../../firebase";
@@ -14,20 +14,23 @@ export default function SideBar() {
         localStorage.removeItem('notiList')
     }
 
-    onMessageListener().then(payload => {
-        // setNotification({title: payload.notification.title, body: payload.notification.body})
-        // setShow(true);
-        console.log(payload)
-        if (payload?.data?.data === ACTIVE_SUCCESS) {
-            return;
-        }
-        let arr = [...notiList]
-        // arr.push(payload?.data?.data)
-        arr.unshift(payload?.data?.data)
-        setNotiList([...arr])
-        localStorage.setItem('notiList', JSON.stringify(arr))
-        toast(payload?.data?.data)
-    }).catch(err => console.log('failed: ', err));
+    useEffect(() => {
+        onMessageListener().then(payload => {
+            // setNotification({title: payload.notification.title, body: payload.notification.body})
+            // setShow(true);
+            console.log(payload)
+            // if (payload?.data?.data === ACTIVE_SUCCESS) {
+            //     return;
+            // }
+            let arr = [...notiList]
+            // arr.push(payload?.data?.data)
+            arr.unshift(payload?.data?.data)
+            setNotiList([...arr])
+            localStorage.setItem('notiList', JSON.stringify(arr))
+            toast(payload?.data?.data)
+        }).catch(err => console.log('failed: ', err));
+
+    })
 
     return (
 

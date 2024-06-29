@@ -20,18 +20,18 @@ def load_sound_model():
     # run_sound_predict(mypath/'file.wav')
 
 
-def save_sound_file(firebaseToken, file):
+def save_sound_file(firebaseToken, file, time):
     get = getUserInfo(firebaseToken)
     userId = get[1]
     now = datetime.now()
-    directory = 'storage/' + str(userId) + '/' + now.strftime("%Y%m%d") + '/'
-    filename = now.strftime("%H%M%S") + ".wav"
+    directory = 'storage/' + str(userId) + '/' + time.strftime("%Y%m%d") + '/'
+    filename = time.strftime("%H%M%S") + ".wav"
     
     mypath = Path().absolute()
     file_name = default_storage.save(mypath/directory/filename, file)
     return file_name
 
-def save_sound_prediction(predictions, firebaseToken):
+def save_sound_prediction(predictions, record):
     print('\n', predictions, '\n')
     # return predictions
     soundArr = list(set(predictions))
@@ -45,7 +45,8 @@ def save_sound_prediction(predictions, firebaseToken):
             soundStr += ele + ', '
         index = index + 1
     
-    record = getLastPrediction(firebaseToken)
+    # record = getLastPrediction(firebaseToken)
+    
     
     print(record)
     

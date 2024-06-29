@@ -3,11 +3,11 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from common.function import hash_password
-from common.web_firebase_token import updateFirebaseToken, sendToUser
+from common.web_firebase_token import updateFirebaseToken
 
 from config.msg import ACCOUNT_EXISTS, ACCOUNT_NOT_FOUND, WRONG_PASSWORD, LOGIN_SUCCESS, REGISTER_SUCCESS, UNAUTHORIZED
 
-from common.auth_token import create_token, validateToken
+from common.auth_token import create_token
     
 from data_process.account_entity import addNewAccount, checkAccount
 

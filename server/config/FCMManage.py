@@ -21,3 +21,16 @@ def sendPush(title, msg, registration_token):
     response = messaging.send_multicast(message)
     print("Sent " + msg + " with token: " + registration_token[0])
     return "Sent " + msg + " with token: " + registration_token[0]
+
+def sendNotification(title, msg, registration_token):
+    message = messaging.MulticastMessage(
+        notification=messaging.Notification(title=title, body=msg),
+        data={
+            "data": msg
+        },
+        tokens=registration_token
+    )
+
+    response = messaging.send_multicast(message)
+    print("Sent " + msg + " with token: " + registration_token[0])
+    return "Sent " + msg + " with token: " + registration_token[0]

@@ -21,7 +21,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import com.example.myapplication.R
 import com.example.myapplication.utils.data.APIResponse
-import com.example.myapplication.utils.data.CheckDeviceResponse
 import com.example.myapplication.utils.data.GSonRequest
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.messaging.FirebaseMessaging
@@ -35,7 +34,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import java.io.IOException
-import kotlin.math.log
 
 class MainActivity : ComponentActivity() {
 
@@ -67,28 +65,6 @@ class MainActivity : ComponentActivity() {
                     checkDevice(deviceId)
                 }
             }
-//            val myIntent = Intent(this, ActiveDeviceActivity::class.java)
-//            myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-//            finishAffinity()
-//            startActivity(myIntent)
-//            val tv = TextView(this).apply {
-//                id = View.generateViewId()
-//                LinearLayout.LayoutParams(
-//                    ViewGroup.LayoutParams.MATCH_PARENT,
-//                    75,
-//                    0f)
-//                text = "Has all permissions"
-//                textSize = 15f
-//            }
-//
-//            val ll = LinearLayout(this).apply {
-//                id = View.generateViewId()
-//                addView(tv)
-//                gravity = Gravity.CENTER
-//            }
-//            ll.orientation = LinearLayout.VERTICAL
-//            ll.setPadding(70, 50, 70, 50)
-//            setContentView(ll)
         } else {
             changeToPermissionRequestScreen()
 
@@ -195,11 +171,6 @@ class MainActivity : ComponentActivity() {
 
                 val client = OkHttpClient()
 
-                val moshi = Moshi.Builder()
-                    .addLast(KotlinJsonAdapterFactory()).build()
-
-                val jsonAdapter: JsonAdapter<CheckDeviceResponse> =
-                    moshi.adapter(CheckDeviceResponse::class.java)
                 Log.d("ANDROID_ID", androidId)
                 val formBody = FormBody.Builder()
                 formBody.add("deviceId", androidId)
@@ -222,11 +193,6 @@ class MainActivity : ComponentActivity() {
                             val controlButton: Button = findViewById(R.id.control_button)
                             controlButton.text = "Run"
                             loggedIn = false
-//                            val annotationData = jsonAdapter.fromJson(response.body.string())
-//                            val check = annotationData?.login
-//                            if (check != null) {
-//                                print(check)
-//                            }
                         }
                     }
                 })

@@ -39,7 +39,7 @@ def startRunning(userId, firebaseToken):
             prediction = record[6]
             date_time1 = datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S")
             userId = record[5]
-            if isNewThread(userId):
+            if not isNewThread(userId):
                 if abs(datetime.now() - date_time1) > timedelta(minutes=2):
                     stopThread(userId)
                     newPrediction = "Smart watch has been disconnected, last prection is: " + prediction + ", at " + date_time + "."
@@ -75,6 +75,7 @@ def startRunning(userId, firebaseToken):
                     # send_to_stresswatch3(healthData3)
                     return
         sendPush('get', 'getHRData', [firebaseToken])
+    setIsNewThread(userId, True)
     action()
     updateThread(userId, setInterval(intervalTime, action))
     
@@ -386,13 +387,16 @@ class SoundDataAPI(APIView):
         firebaseToken = data.get('firebaseToken')
         latitude = data.get('latitude')
         longitude = data.get('longitude')
-        file_path = save_sound_file(firebaseToken, file)
+        
+        record = getLastPrediction(firebaseToken)
+        date_time = record[1]
+        file_path = save_sound_file(firebaseToken, file, datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S"))
         print(file_path)
+        
         predictions = run_sound_predict(mypath/file_path, firebaseToken)
-        record = save_sound_prediction(predictions, firebaseToken)
+        record = save_sound_prediction(predictions, record)
         
         avg_heartbeat = record[0]
-        date_time = record[1]
         deviceId = record[2]
         prediction = record[3]
         userId = record[4]

@@ -28,15 +28,15 @@ export default function DeviceListPage({
         })
     }, [])
 
-    onMessageListener().then(payload => {
-        // setNotification({title: payload.notification.title, body: payload.notification.body})
-        // setShow(true);
-        console.log(payload)
-        if (payload?.data?.data === ACTIVE_SUCCESS) {
-            toast.success(ACTIVE_SUCCESS)
-            setOpenAddModal(false);
-        }
-    }).catch(err => console.log('failed: ', err));
+    // onMessageListener().then(payload => {
+    //     // setNotification({title: payload.notification.title, body: payload.notification.body})
+    //     // setShow(true);
+    //     console.log(payload)
+    //     if (payload?.data?.data === ACTIVE_SUCCESS) {
+    //         toast.success(ACTIVE_SUCCESS)
+    //         setOpenAddModal(false);
+    //     }
+    // }).catch(err => console.log('failed: ', err));
 
     return (
         <div style={{

@@ -8,7 +8,7 @@ import { firebaseConfig } from './config';
 
 const firebaseApp = initializeApp(firebaseConfig)
 
-const messaging = getMessaging(firebaseApp)
+export const messaging = getMessaging(firebaseApp)
 
 export const requestForToken = async () => {
     try {
