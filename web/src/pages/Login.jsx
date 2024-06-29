@@ -47,7 +47,7 @@ export default function LoginPage({
                                     loginTime: Date.now(),
                                 })
                             );
-                        window.location.reload()
+                        window.location = '/'
                     } else {
                         toast.error(data?.msg)
                     }
