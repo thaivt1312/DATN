@@ -18,16 +18,6 @@ class LoginApi(APIView):
         username = data.get('username')
         password = data.get('password')
         
-        # mydb = connect_to_database()
-        # mycursor = mydb.cursor(buffered=True)
-        # query = """SELECT id, password, account_type FROM account WHERE username=%s and is_deleted=%s"""
-        # params=(username, 0)
-        # mycursor.execute(query, params)
-        # res = mycursor.fetchone()
-        # mycursor.reset()
-        # mycursor.close()
-        # mydb.close()
-        
         res = checkAccount(username)
         
         print(res)
@@ -59,8 +49,6 @@ class LoginApi(APIView):
                         },
                         "success": True
                     }
-                # for x in range(1, 20):
-                    # sendToUser(res[0], "test msg" + str(x))
             else:
                 response = {
                     "msg": WRONG_PASSWORD,
@@ -72,15 +60,6 @@ class LoginApi(APIView):
 class registerApi(APIView):
     def post(self, request, *args, **kwargs):
         data = request.data
-        # BearerToken = request.headers.get('Authorization')
-        # user_id = validateToken(BearerToken)
-        # if not user_id:
-        #     response = {
-        #         "msg": UNAUTHORIZED,
-        #         "success": False
-        #     }
-        #     return Response(response, status=status.HTTP_200_OK)
-        # else:
         username = data.get('username')
         password = data.get('password')
         
@@ -100,43 +79,3 @@ class registerApi(APIView):
                 "success": False
             }
         return Response(response, status=status.HTTP_200_OK)
-# class deviceApi(APIView):
-#     def get(self, request, *args, **kwargs):
-#         # data = request.data
-#         # name = request.args.get("name")
-#         BearerToken = request.headers.get('Authorization')
-#         user_id = validateToken(BearerToken)
-#         if not user_id:
-#             response = {
-#                 "msg": UNAUTHORIZED,
-#                 "success": False
-#             }
-#             return Response(response, status=status.HTTP_401_UNAUTHORIZED)
-#         else:
-#             query = """SELECT * FROM device"""
-#             params=(0,)
-#             mycursor.execute(query, params)
-#             res = mycursor.fetchall()
-#             mycursor.reset()
-#             print(res)
-            
-#             response = {
-#                 "data": map(
-#                     lambda x: {
-#                         "id": x[0],
-#                         "carer_id": x[1],
-#                         "device_id": x[2],
-#                         "device_information": x[4],
-#                         "user_information": x[5],
-#                         "is_active": x[6],
-#                         "is_running": x[7]
-#                     }, 
-#                     res
-#                 ),
-#                 "success": True
-#             }
-#             return Response(response, status=status.HTTP_200_OK)
-        
-class getNotificationList():
-    def get(self, request, *args, **kwargs):
-        data = request.data

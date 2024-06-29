@@ -16,7 +16,6 @@ export default function DetailPage({
 
 }) {
     const { id } = useParams();
-    // const [searchParams] = useSearchParams();
 
     const small = useMediaQuery("(max-width:600px)");
     const full = useMediaQuery("(min-width:600px)");
@@ -30,7 +29,7 @@ export default function DetailPage({
     const [editInformations, setEditInformations] = useState(false)
     const [openConfirmDeactive, setOpenConfirmDeactive] = useState()
 
-    function formatDate(date) {
+    function formatDate(date, delimiter = '-') {
         var d = new Date(date),
             month = '' + (d.getMonth() + 1),
             day = '' + d.getDate(),
@@ -41,28 +40,30 @@ export default function DetailPage({
         if (day.length < 2)
             day = '0' + day;
 
-        return [year, month, day].join('-');
+        return [year, month, day].join(delimiter);
     }
 
-    function formatTime(date) {
+    function formatTime(date, delimiter = ':') {
         var d = new Date(date),
             hour = d.getHours(),
             minute = d.getMinutes(),
-            second = '00';
+            second = d.getSeconds();
 
         if (hour < 10)
             hour = '0' + hour;
         if (minute < 10)
             minute = '0' + minute;
+        if (second < 10)
+            second = '0' + second;
 
-        return [hour, minute, second].join(':');
+        return [hour, minute, second].join(delimiter);
     }
 
     const getData = () => {
         const apiParams = {
             id: id,
-            from: formatDate(date ? date : new Date()) + ' ' + formatTime(fromTime ? fromTime : new Date('2024-05-05T00:00')),
-            to: formatDate(date ? date : new Date()) + ' ' + formatTime(toTime ? toTime : new Date('2024-05-05T23:59')),
+            from: formatDate(date ? date : new Date()) + ' ' + formatTime(fromTime ? fromTime : new Date('2024-05-05T00:00:00')),
+            to: formatDate(date ? date : new Date()) + ' ' + formatTime(toTime ? toTime : new Date('2024-05-05T23:59:59')),
         }
         AppService.getDetail(apiParams)
             .then((res) => {
@@ -81,7 +82,7 @@ export default function DetailPage({
             id,
             deviceId: data?.device_id
         })
-           .then((res) => {
+            .then((res) => {
                 console.log(res)
                 let data = res.data
                 if (data.success) {
@@ -104,18 +105,44 @@ export default function DetailPage({
                 "information": userInformation,
                 "id": id,
             })
+                .then((res) => {
+                    console.log(res)
+                    let data = res.data
+                    if (data.success) {
+                        toast.success(data.msg)
+                    } else {
+                        toast.error(data.msg)
+                    }
+                    getData()
+                })
+        }
+        setEditInformations(!editInformations)
+    }
+
+    const downloadSoundFile = (datetime) => {
+        let date = formatDate(datetime, '')
+        let time = formatTime(datetime, '')
+        AppService.downloadSoundFile({
+            id,
+            date,
+            time,
+        })
             .then((res) => {
                 console.log(res)
                 let data = res.data
-                if (data.success) {
-                    toast.success(data.msg)
-                } else {
-                    toast.error(data.msg)
-                }
-                getData()
+                const url = window.URL.createObjectURL(new Blob([data], { type: 'audio/wav' }));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', `${id}_${date}_${time}.wav`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
             })
-        }
-        setEditInformations(!editInformations)
+            .catch((err) => {
+                console.error(err);
+                toast.error("File not found")
+            })
     }
 
     return (
@@ -130,17 +157,17 @@ export default function DetailPage({
             <a href="/device-list">
                 Return to device list page
             </a>
-            
+
             {
-                openConfirmDeactive ? 
-                <ConfirmPopup
-                    title={"Deactive this device"}
-                    content={"Do you want to deactive this device?"}
-                    open={openConfirmDeactive}
-                    close={() => setOpenConfirmDeactive(false)}
-                    handleConfirm={handleDeactive}
-                />
-                : <></>
+                openConfirmDeactive ?
+                    <ConfirmPopup
+                        title={"Deactive this device"}
+                        content={"Do you want to deactive this device?"}
+                        open={openConfirmDeactive}
+                        close={() => setOpenConfirmDeactive(false)}
+                        handleConfirm={handleDeactive}
+                    />
+                    : <></>
             }
             <Stack spacing={4}>
                 <Typography variant='h4' textAlign={"center"}>
@@ -153,11 +180,11 @@ export default function DetailPage({
                             Information
                         </Typography>
                         {
-                            data ? 
-                            <Button onClick={() => setOpenConfirmDeactive(true)}>
-                                Deactive this device
-                            </Button>
-                            : <></>
+                            data ?
+                                <Button onClick={() => setOpenConfirmDeactive(true)}>
+                                    Deactive this device
+                                </Button>
+                                : <></>
                         }
                     </Stack>
 
@@ -202,13 +229,11 @@ export default function DetailPage({
                                 Date:
                             </Typography>
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                {/* <DemoContainer components={['DatePicker', 'DatePicker']}> */}
                                 <DatePicker
                                     // label="Controlled picker"
                                     value={date}
                                     onChange={(newValue) => setDate(newValue)}
                                 />
-                                {/* </DemoContainer> */}
                             </LocalizationProvider>
                         </Stack>
 
@@ -271,8 +296,7 @@ export default function DetailPage({
                                                     {prediction.time}
                                                 </TableCell>
                                                 <TableCell>
-                                                    {/* <Button>Edit</Button> */}
-                                                    {/* <Button>Delete</Button> */}
+                                                    <Button onClick={() => downloadSoundFile(prediction.time)}>Download sound file</Button>
                                                 </TableCell>
                                             </TableRow>
                                         )

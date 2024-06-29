@@ -2,13 +2,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.core.files.storage import default_storage
+from django.http import FileResponse
+from django.core.files import File
 from pathlib import Path
-import os
 from datetime import datetime, timedelta
 
 from common.function import send_to_stresswatch2, send_to_stresswatch3
 
-from .sound_process.index import load_sound_model, run_sound_predict, save_sound_prediction
+from .sound_process.index import load_sound_model, run_sound_predict, save_sound_prediction, save_sound_file
 
 from common.web_firebase_token import sendToUser
 from common.auth_token import validateToken
@@ -88,12 +89,12 @@ class getDeviceListView(APIView):
             user_id = user_data['user_id']
             account_type = user_data['account_type']
             arr = getListDevice(user_id, account_type)
-            print(arr)
+            # print(arr)
             res = []
             for item in arr:
                 firebase_token = item[3]
                 lastPredict = getLastPrediction(firebase_token)
-                if not lastPredict[6]:
+                if len(lastPredict) == 0:
                     prediction = ""
                 else:
                     prediction = lastPredict[6]
@@ -105,7 +106,7 @@ class getDeviceListView(APIView):
                     'is_running': item[7],
                     'last_predict': prediction
                 })
-            print(res)
+            # print(res)
             response = {
                 "data": res,
                 "success": True
@@ -124,11 +125,11 @@ class getDetail(APIView):
         BearerToken = request.headers.get('Authorization')
         user_data = validateToken(BearerToken)
         if user_data:
-            # account_type = user_data['account_type']
+            account_type = user_data['account_type']
             id = data.get('id')
             carer_id = user_data['user_id']
             test_carer_id = getCarerIdByUserId(id)[1]
-            if test_carer_id != carer_id:
+            if test_carer_id != carer_id and account_type == 0:
                 response = {
                     "msg": "Token not valid",
                     "data": '',
@@ -142,7 +143,7 @@ class getDetail(APIView):
                 
                 predictionList = getListPrediction(id, fromTime, toTime)
                 # arr = getListDevice(user_id, account_type)
-                print(predictionList)
+                # print(predictionList)
                 arr = []
                 for item in predictionList:
                     arr.append({
@@ -377,22 +378,17 @@ class HRVDataAPI(APIView):
 class SoundDataAPI(APIView):
     def post(self, request, *args, **kwargs):
         data = request.data
-        # response = "server received"
-        # print(data.get('file'))
-        # print(request.FILES.get('file').name)
-        print (data)
+        
         response = request.FILES.get('file').name
         file = request.FILES.get('file')
-        file_name = default_storage.save(file.name, file)
         mypath = Path().absolute()
-        print('\n', mypath/file_name, '\n')
         
         firebaseToken = data.get('firebaseToken')
         latitude = data.get('latitude')
         longitude = data.get('longitude')
-        predictions = run_sound_predict(mypath/file_name, firebaseToken)
-        os.remove(mypath/file_name)
-        
+        file_path = save_sound_file(firebaseToken, file)
+        print(file_path)
+        predictions = run_sound_predict(mypath/file_path, firebaseToken)
         record = save_sound_prediction(predictions, firebaseToken)
         
         avg_heartbeat = record[0]
@@ -443,3 +439,45 @@ class SoundDataAPI(APIView):
         }
         
         return Response(response, status=status.HTTP_200_OK)
+    
+class getSoundFile(APIView):
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        BearerToken = request.headers.get('Authorization')
+        user_data = validateToken(BearerToken)
+        if user_data:
+            account_type = user_data['account_type']
+            id = data.get('id')
+            carer_id = user_data['user_id']
+            test_carer_id = getCarerIdByUserId(id)[1]
+            if test_carer_id != carer_id and account_type == 0:
+                response = {
+                    "msg": "Token not valid",
+                    "data": '',
+                    "success": False,
+                }
+            else:
+                date = data.get('date')
+                time = data.get('time')
+                id = data.get('id')
+                mypath = Path().absolute()
+                file_path = 'storage/' + str(id) + '/' + date + '/' + time + ".wav"
+                try: 
+                    # open(mypath/file_path, 'rb')
+                    return FileResponse(open(mypath/file_path, 'rb'), as_attachment=True)
+                except:
+                    response = {
+                        "msg": "File not found",
+                        "data": '',
+                        "success": False,
+                    }
+                    return Response(response, status=status.HTTP_404_NOT_FOUND)
+                
+        else: 
+            response = {
+                "msg": "Token not valid",
+                "data": '',
+                "success": False,
+            }
+        return Response(response, status=status.HTTP_200_OK)
+        

@@ -1,4 +1,4 @@
-from .views import checkDevice, HRVDataAPI, SoundDataAPI, generatePasscode, verifyPasscode, getDeviceListView, getDetail, editUserInformation, stopRunning, deactiveDeviceAPI
+from .views import checkDevice, HRVDataAPI, SoundDataAPI, generatePasscode, verifyPasscode, getDeviceListView, getDetail, editUserInformation, stopRunning, deactiveDeviceAPI, getSoundFile
 
 from django.urls import path
 
@@ -14,5 +14,6 @@ urlpatterns = [
     path("editUserInformation/", editUserInformation.as_view()),
     path("stopRunning/", stopRunning.as_view()),
     path("deactiveDevice/", deactiveDeviceAPI.as_view()),
+    path("getSoundFile/", getSoundFile.as_view()),
     
 ]

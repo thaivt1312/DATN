@@ -17,6 +17,12 @@ const AppService = {
     },
     deactiveDevice(body) {
         return axios.post(`${appUrl}/deactiveDevice/`, {...body}, config)
+    },
+    downloadSoundFile(body) {
+        return axios.post(`${appUrl}/getSoundFile/`, {...body}, {
+            ...config,
+            responseType: 'blob'
+        })
     }
 }
 

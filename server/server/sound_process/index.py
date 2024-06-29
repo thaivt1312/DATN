@@ -1,6 +1,8 @@
 import librosa
 import os
 import numpy as np
+from datetime import datetime
+from django.core.files.storage import default_storage
 from .keras_yamnet import params
 from .keras_yamnet.yamnet import YAMNet, class_names
 from .keras_yamnet.preprocessing import preprocess_input
@@ -20,17 +22,14 @@ def load_sound_model():
 
 def save_sound_file(firebaseToken, file):
     get = getUserInfo(firebaseToken)
-    deviceId = get[0]
     userId = get[1]
+    now = datetime.now()
+    directory = 'storage/' + str(userId) + '/' + now.strftime("%Y%m%d") + '/'
+    filename = now.strftime("%H%M%S") + ".wav"
     
-    directory = str(userId) + '/' + str(deviceId)
-    filename = "file.html"
-    file_path = os.path.join(directory, filename)
-    if not os.path.isdir(directory):
-        os.mkdir(directory)
-    file = open(file_path, "w")
-    file.write(file)
-    file.close()
+    mypath = Path().absolute()
+    file_name = default_storage.save(mypath/directory/filename, file)
+    return file_name
 
 def save_sound_prediction(predictions, firebaseToken):
     print('\n', predictions, '\n')
