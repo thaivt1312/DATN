@@ -7,14 +7,8 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Button
 import androidx.activity.ComponentActivity
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import com.example.myapplication.R
-import com.example.myapplication.presentation.ui.theme.MyApplicationTheme
-
 
 class PermissionRequestActivity : ComponentActivity() {
     private var hasSensorPermission = false
@@ -55,6 +49,12 @@ class PermissionRequestActivity : ComponentActivity() {
         }
     }
 
+    private fun changeToMainScreen() {
+        val myIntent = Intent(this, MainActivity::class.java)
+        myIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        finishAffinity()
+        startActivity(myIntent)
+    }
     private fun requestPermission(permission: String, requestCode: Int) {
         ActivityCompat.requestPermissions(
             this,
@@ -77,29 +77,9 @@ class PermissionRequestActivity : ComponentActivity() {
                 this.hasFineLocationPermission = true
             }
             if (hasSensorPermission && hasRecordPermission && hasCoastLocationPermission && hasFineLocationPermission) {
-//                checkDevice(Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID))
-                val myIntent = Intent(this, MainActivity::class.java)
-                myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                finishAffinity()
-                startActivity(myIntent)
+                changeToMainScreen()
             }
         }
     }
 
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview2() {
-    MyApplicationTheme {
-        Greeting("Android")
-    }
 }

@@ -1,100 +1,79 @@
+import { Stack } from "@mui/material";
 import { useEffect, useState } from "react";
-import Router from "./router";
-import { requestForToken, onMessageListener } from "./firebase";
-
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
-import { Stack, Button } from "@mui/material";
 import Navbar from "./components/NavBar";
+import SideBar from "./components/NotificationSideBar";
 
+import Router from "./router";
+import { requestForToken } from "./firebase";
 
 function App() {
-  const [hasPermission, setHasPermission] = useState(false)
-  const [notiList, setNotiList] = useState(localStorage.getItem('notiList') ? JSON.parse(localStorage.getItem('notiList')) : [])
+	const [hasPermission, setHasPermission] = useState(false)
 
-  function requestPermission() {
-    console.log('Requesting permission...');
-    Notification.requestPermission().then((permission) => {
-      if (permission === 'granted') {
-        console.log('Notification permission granted.');
-        setHasPermission(true)
-      }
-    })
-  }
-  useEffect(() => {
-    requestPermission()
-    async function fetchToken() {
-      let token = await requestForToken()
-      localStorage.setItem('firebaseToken', token)
-    }
-    fetchToken()
-  }, [])
+	function requestPermission() {
+		console.log('Requesting permission...');
+		Notification.requestPermission().then((permission) => {
+			if (permission === 'granted') {
+				console.log('Notification permission granted.');
+				setHasPermission(true)
+			}
+		})
+	}
+	useEffect(() => {
+		requestPermission()
+		async function fetchToken() {
+			let token = await requestForToken()
+			localStorage.setItem('firebaseToken', token)
+		}
+		fetchToken()
+	}, [])
 
-  onMessageListener().then(payload => {
-    // setNotification({title: payload.notification.title, body: payload.notification.body})
-    // setShow(true);
-    console.log(payload)
-    let arr = [...notiList]
-    arr.push(payload?.data?.data)
-    setNotiList([...arr])
-    localStorage.setItem('notiList', JSON.stringify(arr))
-    toast(payload?.data?.data)
-  }).catch(err => console.log('failed: ', err));
+	useEffect(() => {
+		if (typeof window !== 'undefined' && (window.localStorage.getItem("data") && window.localStorage.getItem("data") !== 'null')) {
+			let date1 = JSON.parse(window.localStorage.getItem("data")).loginTime;
+			let date2 = Date.now();
+			let difference = date2 - date1;
+			if (difference > 1000 * 60 * 60 * 24) {
+				// window.localStorage.removeItem("data");
+				window.localStorage.clear();
+				window.location.reload();
+			}
+		}
+	});
 
-  const clearNotiList = () => {
-    setNotiList([])
-    localStorage.removeItem('notiList')
-  }
 
-  return (
-    <>
-      <div style={{
-        width: '100vw',
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px',
-      }}>
-        {
-          !hasPermission ?
-            <span style={{ color: 'red' }}>Please allow notification permission</span>
-            : <></>
-        }
-        <Navbar />
-        <Stack direction={"row"} sx={{ width: '100vw', height: '90vh' }}>
-          <div style={{
-            width: '80vw',
-            minHeight: '60vh',
-            maxHeight: '90vh',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '20px',
-          }}>
-            <Router />
-          </div>
+	return (
+		<div style={{
+			// width: '100vw',
+			height: '100vh',
+			display: 'flex',
+			flexDirection: 'column',
+		}}>
+			{
+				!hasPermission ?
+					<span style={{ color: 'red' }}>Please allow notification permission</span>
+					: <></>
+			}
+			<Navbar />
+			<Stack direction={"row"} flex={1}>
+				<div style={{
+					width: '80vw',
+					display: 'flex',
+					flexDirection: 'column',
+					gap: '20px',
+				}}>
+					<Router />
+				</div>
 
-          <Stack sx={{ border: 'solid 1px', width: '20vw', height: '90vh' }}>
-            <Button sx={{ border: 'solid 1px' }} onClick={clearNotiList}>
-              Clear notifications list
-            </Button>
-            {
-              notiList.map((noti) => {
-                return (
-                  <Stack sx={{ border: 'solid 1px' }}>
-                    {noti}
-                  </Stack>
-                )
-              })
-            }
-          </Stack>
+				<SideBar />
 
-        </Stack>
-        <ToastContainer />
+			</Stack>
+			<ToastContainer />
 
-      </div>
-    </>
-  )
+		</div>
+	)
 }
 
 export default App

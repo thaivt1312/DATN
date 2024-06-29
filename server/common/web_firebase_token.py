@@ -33,8 +33,10 @@ def getFirebaseToken(user_id):
     
 def sendToUser(user_id, msg):
     index = getIndex(user_id)
+    print(user_id, msg)
     if index == -1:
         return "User not login"
     else:
         token = firebaseTokenArr[index]['firebase_token']
+        print(token, user_id, msg)
         return sendPush('send', msg, [token])

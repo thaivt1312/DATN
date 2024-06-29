@@ -8,10 +8,8 @@ import {
 import LoginPage from '../pages/Login';
 import RegisterPage from '../pages/Register';
 
-import AdminPage from '../pages/admin';
-import AccountListPage from '../pages/admin/AccountList';
+import AccountListPage from '../pages/AccountList';
 
-import UserPage from '../pages/user';
 import DeviceListPage from '../pages/DeviceList';
 import DetailPage from '../pages/Detail';
 
@@ -27,10 +25,8 @@ const Router = () => {
             <Routes>
                 <Route path='/' 
                     element={
-                        admin_token ? 
-                        <AdminPage />
-                        : user_token ? 
-                        <UserPage />
+                        (user_token || admin_token) ? 
+                        <Navigate to={"/device-list"} />
                         : <Navigate to={"/login"} />
                     } 
                 />

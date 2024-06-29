@@ -1,9 +1,9 @@
 
 // Importing files from Material-UI
 import { useState } from "react";
-import { AppBar, Toolbar, Typography, Button, useMediaQuery, styled, List, ListItemButton, ListItemText, Collapse } from "@mui/material"
+import { AppBar, Toolbar, Typography, Button, useMediaQuery, styled, Stack } from "@mui/material"
 
-import {ExpandMoreOutlined, ExpandLessOutlined, Menu as MenuIcon} from "@mui/icons-material"
+import { ExpandMoreOutlined, ExpandLessOutlined, Menu as MenuIcon } from "@mui/icons-material"
 
 // import MenuIcon from "@mui/icons-material/Menu";
 
@@ -22,92 +22,55 @@ const useStyles = styled((theme) => ({
 
 // Exporting Default Navbar to the App.js File
 export default function Navbar() {
-    // const classes = useStyles();
-    const small = useMediaQuery("(max-width:600px)");
-    const full = useMediaQuery("(min-width:600px)");
 
-    const [open, setOpen] = useState(false);
+    let user_token = typeof window !== 'undefined' && (window.localStorage.getItem("data") && window.localStorage.getItem("data") !== 'null')
+        ? JSON.parse(window.localStorage.getItem("data")).user_token
+        : "";
+    let admin_token = typeof window !== 'undefined' && (window.localStorage.getItem("data") && window.localStorage.getItem("data") !== 'null')
+        ? JSON.parse(window.localStorage.getItem("data")).admin_token
+        : "";
 
-    const handleClick = () => {
-        setOpen(!open);
-    };
+    const logout = () => {
+        window.localStorage.clear();
+        window.location.href = "/";
+    }
 
     return (
-        <div style={{height: '10vh'}}>
+        <div style={{ width: '100%', maxHeight: '20vh', fontWeight: 600 }}>
             <AppBar position="static">
-                <Toolbar variant="dense">
-                    {small && (
-                        <List>
-                            <ListItemButton >
-                                <Button
-                                    onClick={
-                                        handleClick
-                                    }
-                                >
-                                    <MenuIcon />
-                                    {open ? (
-                                        <ExpandLessOutlined />
-                                    ) : (
-                                        <ExpandMoreOutlined />
-                                    )}
+                <Stack direction={"row"} justifyContent={"space-between"} >
+                    <Stack direction={"row"} spacing={2}>
+                        <Typography
+                            variant="h5"
+                            color="inherit"
+                            sx={{ padding: '20px' }}
+                        >
+                            Smartwatch monitor
+                        </Typography>
+                        <Button color="inherit" sx={{fontWeight: 600}}>
+                            <a href="/account-list" style={{color: 'white'}}>
+                                Account
+                            </a>
+                        </Button>
+
+                        <Button color="inherit" sx={{fontWeight: 600}}>
+                            <a href="/device-list" style={{color: 'white'}}>
+                                Devices
+                            </a>
+                        </Button>
+
+                    </Stack>
+                    {
+                        (user_token || admin_token) ?
+                            <Stack sx={{ padding: '20px' }}>
+                                <Button color="inherit" sx={{fontWeight: 600}} onClick={logout}>
+                                    Logout
                                 </Button>
-                                <Typography
-                                    variant="h6"
-                                    color="inherit"
-                                    onClick={() => {
-                                        console.log(
-                                            "logo clicked"
-                                        );
-                                        setOpen(false);
-                                    }}
-                                >
-                                    Smartwatch sound prediction system
-                                </Typography>
-                            </ListItemButton>
-                            <Collapse
-                                in={open}
-                                timeout="auto"
-                                unmountOnExit
-                            >
-                                <List
-                                    component="div"
-                                    disablePadding
-                                >
-                                    <ListItemButton >
-                                        <ListItemText primary="Home" />
-                                    </ListItemButton>
-                                    <ListItemButton >
-                                        <ListItemText primary="About" />
-                                    </ListItemButton>{" "}
-                                    <ListItemButton >
-                                        <ListItemText primary="Contact" />
-                                    </ListItemButton>
-                                </List>
-                            </Collapse>
-                        </List>
-                    )}
 
-                    {full && (
-                        <>
-                            <Typography
-                                variant="h6"
-                                color="inherit"
-                            >
-                                Smartwatch sound prediction system
-                            </Typography>
-                            <Button color="inherit">
-                                Home
-                            </Button>
-
-                            <Button color="inherit">
-                                About
-                            </Button>
-                            <Button color="inherit">
-                                Contact
-                            </Button>
-                        </>
-                    )}
-                </Toolbar>
+                            </Stack>
+                            : <></>
+                    }
+                </Stack>
             </AppBar>
         </div>
     );

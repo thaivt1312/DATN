@@ -15,27 +15,14 @@ import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.view.WindowManager
+import android.widget.Button
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
-import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.compose.material.Text
 import com.example.myapplication.R
-import com.example.myapplication.presentation.theme.MyApplicationTheme
 import com.example.myapplication.utils.data.APIResponse
 import com.example.myapplication.utils.data.CheckDeviceResponse
+import com.example.myapplication.utils.data.GSonRequest
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.messaging.FirebaseMessaging
 import com.squareup.moshi.JsonAdapter
@@ -48,7 +35,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import java.io.IOException
-
+import kotlin.math.log
 
 class MainActivity : ComponentActivity() {
 
@@ -58,7 +45,6 @@ class MainActivity : ComponentActivity() {
     private var hasCoastLocationPermission = false
     private var hasFineLocationPermission = false
     var loggedIn = false
-    var isActived = false
 
     @SuppressLint("HardwareIds", "WearRecents")
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -70,7 +56,17 @@ class MainActivity : ComponentActivity() {
         hasCoastLocationPermission = checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
         hasFineLocationPermission = checkPermission(Manifest.permission.ACCESS_FINE_LOCATION)
         if (hasSensorPermission && hasRecordPermission && hasCoastLocationPermission && hasFineLocationPermission) {
-            checkDevice(Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID))
+            val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
+            checkDevice(deviceId)
+
+            val controlButton: Button = findViewById(R.id.control_button)
+            controlButton.setOnClickListener {
+                if (loggedIn) {
+                    logout(deviceId)
+                } else {
+                    checkDevice(deviceId)
+                }
+            }
 //            val myIntent = Intent(this, ActiveDeviceActivity::class.java)
 //            myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
 //            finishAffinity()
@@ -94,12 +90,25 @@ class MainActivity : ComponentActivity() {
 //            ll.setPadding(70, 50, 70, 50)
 //            setContentView(ll)
         } else {
-            val myIntent = Intent(this, PermissionRequestActivity::class.java)
-            myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            finishAffinity()
-            startActivity(myIntent)
+            changeToPermissionRequestScreen()
+
         }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
+    fun changeToActiveDeviceScreen() {
+        val myIntent = Intent(this, ActiveDeviceActivity::class.java)
+        myIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        finishAffinity()
+        startActivity(myIntent)
+    }
+
+    private fun changeToPermissionRequestScreen() {
+        val myIntent = Intent(this, PermissionRequestActivity::class.java)
+        myIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        finishAffinity()
+        startActivity(myIntent)
+
     }
 
     @SuppressLint("HardwareIds")
@@ -110,39 +119,36 @@ class MainActivity : ComponentActivity() {
         return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
     }
 
+    private fun getDeviceInformation(): String {
+        return "${Build.MANUFACTURER} ${Build.MODEL}"
+    }
 
     private fun checkDevice(androidId: String) {
         FirebaseMessaging.getInstance().getToken()
-            .addOnCompleteListener(OnCompleteListener<String?> { task ->
+            .addOnCompleteListener(OnCompleteListener { task ->
                 if (!task.isSuccessful) {
                     Log.w(TAG, "FCM registration token failed", task.exception)
                     return@OnCompleteListener
                 }
 
-                // Get new FCM registration token
                 val token = task.result
-
-                // Log and toast
                 Log.d(TAG, token)
-
-                val apiBaseUrl = "https://intent-alien-crisp.ngrok-free.app/api"
-                val client = OkHttpClient()
+                Log.d("ANDROID_ID", androidId)
 
                 val moshi = Moshi.Builder()
                     .addLast(KotlinJsonAdapterFactory()).build()
 
-                val jsonAdapter: JsonAdapter<APIResponse> =
-                    moshi.adapter(APIResponse::class.java)
-                Log.d("ANDROID_ID", androidId)
                 val formBody = FormBody.Builder()
                 formBody.add("deviceId", androidId)
                 formBody.add("firebaseToken", token.toString())
-                val body: FormBody = formBody.build()
+                formBody.add("deviceInformation", getDeviceInformation())
 
                 val request = Request.Builder()
-                    .url("$apiBaseUrl/checkDevice/")
-                    .post(body)
+                    .url("${GSonRequest.apiBaseUrl}/checkDevice/")
+                    .post(formBody.build())
                     .build()
+
+                val client = OkHttpClient()
                 client.newCall(request).enqueue(object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
                         e.printStackTrace()
@@ -152,12 +158,20 @@ class MainActivity : ComponentActivity() {
                         response.use {
                             if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
+                            val jsonAdapter: JsonAdapter<APIResponse> = moshi.adapter(APIResponse::class.java)
                             val annotationData = jsonAdapter.fromJson(response.body.string())
                             val check = annotationData?.msg
-//                            if (check != null) {
-                            loggedIn = (check == "actived")
-                            print(check)
-//                            }
+                            if (check != null) {
+                                Log.d(TAG, check)
+                                if (check == "0") {
+                                    changeToActiveDeviceScreen()
+                                    loggedIn = false
+                                } else {
+                                    loggedIn = true
+                                    val controlButton: Button = findViewById(R.id.control_button)
+                                    controlButton.text = "Stop"
+                                }
+                            }
                         }
                     }
                 })
@@ -179,7 +193,6 @@ class MainActivity : ComponentActivity() {
                 val firebaseToken = token
                 Log.d(TAG, firebaseToken)
 
-                val apiBaseUrl = "https://intent-alien-crisp.ngrok-free.app/api"
                 val client = OkHttpClient()
 
                 val moshi = Moshi.Builder()
@@ -194,7 +207,7 @@ class MainActivity : ComponentActivity() {
                 val body: FormBody = formBody.build()
 
                 val request = Request.Builder()
-                    .url("$apiBaseUrl/login/checkDevice/")
+                    .url("${GSonRequest.apiBaseUrl}/stopRunning/")
                     .post(body)
                     .build()
                 client.newCall(request).enqueue(object : Callback {
@@ -206,11 +219,14 @@ class MainActivity : ComponentActivity() {
                         response.use {
                             if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
-                            val annotationData = jsonAdapter.fromJson(response.body.string())
-                            val check = annotationData?.login
-                            if (check != null) {
-                                print(check)
-                            }
+                            val controlButton: Button = findViewById(R.id.control_button)
+                            controlButton.text = "Run"
+                            loggedIn = false
+//                            val annotationData = jsonAdapter.fromJson(response.body.string())
+//                            val check = annotationData?.login
+//                            if (check != null) {
+//                                print(check)
+//                            }
                         }
                     }
                 })
@@ -218,40 +234,4 @@ class MainActivity : ComponentActivity() {
 
     }
 
-}
-
-@Composable
-fun WearApp(greetingName: String) {
-    MyApplicationTheme {
-        /* If you have enough items in your list, use [ScalingLazyColumn] which is an optimized
-         * version of LazyColumn for wear devices with some added features. For more information,
-         * see d.android.com/wear/compose.
-         */
-        Row {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colors.background),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Greeting(greetingName = greetingName)
-            }
-        }
-    }
-}
-
-@Composable
-fun Greeting(greetingName: String) {
-    Text(
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colors.primary,
-            text = stringResource(R.string.hello_world, greetingName)
-    )
-}
-
-@Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
-@Composable
-fun DefaultPreview() {
-    WearApp("Preview Android")
 }

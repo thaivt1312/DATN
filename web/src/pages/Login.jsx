@@ -1,15 +1,19 @@
-import { Button, Stack, TextField, Typography } from '@mui/material'
+import { Button, Stack, TextField, Typography, useMediaQuery } from '@mui/material'
 
 import { useFormik } from 'formik'
 import * as Yup from 'yup';
-import axios from 'axios';
-import { adminUrl, config } from "../remotes/Base";
+
+import UserService from '../services/UserService';
 
 import { toast } from 'react-toastify';
 
 export default function LoginPage({
 
 }) {
+    
+    const small = useMediaQuery("(max-width:600px)");
+    const full = useMediaQuery("(min-width:600px)");
+
     const formik = useFormik({
         initialValues: {
             username: '',
@@ -26,19 +30,24 @@ export default function LoginPage({
                 .required()
         }),
         onSubmit: (values) => {
-            axios.post(`${adminUrl}/login/`,
-                {
-                    ...values,
-                    firebaseToken: localStorage.getItem('firebaseToken'),
-                },
-                config
-            )
+            let apiParams =
+            {
+                ...values,
+                firebaseToken: localStorage.getItem('firebaseToken'),
+            }
+            UserService.login(apiParams)
                 .then((r) => {
                     let data = r?.data;
                     if (data?.success) {
                         toast.success(data?.msg)
-                        localStorage.setItem('data', JSON.stringify(data?.data))
-                        // window.location.reload()
+                        if (typeof window != 'undefined')
+                            window.localStorage.setItem('data',
+                                JSON.stringify({
+                                    ...data?.data,
+                                    loginTime: Date.now(),
+                                })
+                            );
+                        window.location.reload()
                     } else {
                         toast.error(data?.msg)
                     }
@@ -47,65 +56,73 @@ export default function LoginPage({
         }
     })
     return (
-        <form
-            noValidate
-            onSubmit={formik.handleSubmit}>
-            <div style={{
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '20px',
-            }}>
-                <Stack>
-                    <Typography variant='h4' textAlign={"center"}>
-                        Smartwatch sound prediction system
-                    </Typography>
-                </Stack>
-                <Stack spacing={2}
-                    justifyContent={"center"}
-                    alignItems={"center"}
-                    flex={1}
+        <div style={{
+            // width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            padding: small ? '20px': '40px'
+        }}>
+            <Stack>
+                <Typography variant='h4' textAlign={"center"}>
+                    Log in
+                </Typography>
+            </Stack>
+            <Stack spacing={2}
+                justifyContent={"center"}
+                alignItems={"center"}
+                flex={1}
+                sx={{
+                    border: 'solid 1px #1976d2',
+                    borderRadius: '16px',
+                    margin: small ? '0': '10% 20%',
+                    padding: small ? '10px': '30px',
+                }}
+            >
+                <TextField
+                    size='small'
+                    fullWidth
+                    name="username"
+                    label="Username"
+                    type="text"
+                    onChange={formik.handleChange}
+                    error={!!(formik.touched.username && formik.errors.username)}
+                    helperText={formik.touched.username && formik.errors.username}
+                />
+
+                <TextField
+                    size='small'
+                    fullWidth
+                    name="password"
+                    label="Password"
+                    type="password"
+                    onChange={formik.handleChange}
+                    error={!!(formik.touched.password && formik.errors.password)}
+                    helperText={formik.touched.password && formik.errors.password}
+                />
+
+                <Button onClick={formik.handleSubmit}
+                    fullWidth
                     sx={{
-                        border: 'solid 1px',
-                        borderRadius: '8px',
-                        margin: '15% 25%',
-                        padding: '20px',
+                        // border: 'solid 1px',
+                        background: '#1976d2',
+                        color: 'white',
+                        '&:hover': {
+                            opacity: 0.7,
+                            background: '#1976d2',
+                        }
                     }}
                 >
-                    <TextField
-                        size='small'
-                        fullWidth
-                        name="username"
-                        label="Username"
-                        type="text"
-                        onChange={formik.handleChange}
-                        error={!!(formik.touched.username && formik.errors.username)}
-                        helperText={formik.touched.username && formik.errors.username}
-                    />
+                    Log in
+                </Button>
 
-                    <TextField
-                        size='small'
-                        fullWidth
-                        name="password"
-                        label="Password"
-                        type="password"
-                        onChange={formik.handleChange}
-                        error={!!(formik.touched.password && formik.errors.password)}
-                        helperText={formik.touched.password && formik.errors.password}
-                    />
-
-                    <Button type='submit'
-                        fullWidth 
-                        sx={{
-                            border: 'solid 1px'
-                        }}
-                    >
-                        Log in
-                    </Button>
-
+                <Stack direction={"row"} justifyContent={"flex-end"} sx={{ width: '100%' }}>
+                    <a href='/register'>
+                        Register
+                    </a>
                 </Stack>
-            </div>
-        </form>
+
+            </Stack>
+        </div>
     )
 }

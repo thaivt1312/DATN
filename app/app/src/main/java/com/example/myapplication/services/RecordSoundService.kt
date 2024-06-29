@@ -97,11 +97,18 @@ class RecordSoundService(context: Context, params: WorkerParameters) : Worker(co
         )
             .addOnSuccessListener { location: Location? ->
                 run {
-                    val locationInfo =
-                        "Current location is \n" + "lat : ${location?.latitude}\n" +
-                                "long : ${location?.longitude}\n" + "fetched at ${System.currentTimeMillis()}"
-                    Log.d("Location", locationInfo)
 
+                    val latitude: String = if (location?.latitude == null) {
+                        ""
+                    } else {
+                        location.latitude.toString()
+                    }
+
+                    val longitude: String = if (location?.longitude == null) {
+                        ""
+                    } else {
+                        location.longitude.toString()
+                    }
 
                     FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
                         if (!task.isSuccessful) {
@@ -111,27 +118,24 @@ class RecordSoundService(context: Context, params: WorkerParameters) : Worker(co
 
                         // Get new FCM registration token
                         val token = task.result
-
-                        Log.i("info message", "Making post api...")
+                        Log.i("info message", "Sending sound file...")
 
                         val gsonRequest = GSonRequest()
                         val file = File(outputFile)
-//            val MEDIA_TYPE_MARKDOWN = "text/x-markdown; charset=utf-8".toMediaType()
                         val requestBody: RequestBody = MultipartBody.Builder()
                             .setType(MultipartBody.FORM)
                             .addFormDataPart("file",
                                 "file.wav",
                                 file.asRequestBody("media/type".toMediaTypeOrNull())
                             )
-                            .addFormDataPart("latitude", location?.latitude.toString())
-                            .addFormDataPart("longitude", location?.longitude.toString())
+                            .addFormDataPart("latitude", latitude)
+                            .addFormDataPart("longitude", longitude)
                             .addFormDataPart("firebaseToken", token)
                             .build()
 
                         gsonRequest.callPostAPI("/post/record/", requestBody)
 
                         this.stop(0)
-
                     })
 
                 }

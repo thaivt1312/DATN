@@ -18,13 +18,13 @@ USE `hrv_db`;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `device_manager`
+-- Table structure for table `device`
 --
 
-DROP TABLE IF EXISTS `device_manager`;
+DROP TABLE IF EXISTS `device`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `device_manager` (
+CREATE TABLE `device` (
   `id` int NOT NULL AUTO_INCREMENT,
   `device_id` varchar(50) NOT NULL DEFAULT '""',
   `firebase_token` text,
@@ -33,17 +33,17 @@ CREATE TABLE `device_manager` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `hr_data`
+-- Table structure for table `predict_data`
 --
 
-DROP TABLE IF EXISTS `hr_data`;
+DROP TABLE IF EXISTS `predict_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `hr_data` (
+CREATE TABLE `predict_data` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int DEFAULT NULL,
   `device_id` varchar(50) DEFAULT NULL,
-  `hr_data` text,
+  `predict_data` text,
   `avg_heartbeat` double DEFAULT NULL,
   `stress_level` smallint DEFAULT '0',
   `prediction` varchar(255) DEFAULT 'No problem detected',

@@ -10,7 +10,10 @@ import okhttp3.Response
 import java.io.IOException
 
 class GSonRequest {
-    private val apiBaseUrl = "https://intent-alien-crisp.ngrok-free.app/api"
+
+    companion object {
+        var apiBaseUrl: String = "https://intent-alien-crisp.ngrok-free.app/api"
+    }
     private val client = OkHttpClient()
     val gson = Gson()
 
@@ -48,5 +51,6 @@ class GSonRequest {
 
         makeCall(request)
     }
+
 
 }

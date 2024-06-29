@@ -1,12 +1,13 @@
 import librosa
+import os
 import numpy as np
 from .keras_yamnet import params
 from .keras_yamnet.yamnet import YAMNet, class_names
 from .keras_yamnet.preprocessing import preprocess_input
 from pathlib import Path
 
-from ..devices_manage.get_data import getLastestRecord
-from ..devices_manage.save_data import updatePrediction
+from data_process.prediction_entity import updatePrediction, getLastPrediction
+from data_process.device_entity import getUserInfo
 
 global sound_model
 
@@ -16,7 +17,22 @@ def load_sound_model():
     sound_model = YAMNet(weights=mypath/'server/sound_process/keras_yamnet/yamnet.h5')
     # run_sound_predict(mypath/'file.wav')
 
-def save_sound_prediction(predictions, firebaseToken, latitude, longitude):
+
+def save_sound_file(firebaseToken, file):
+    get = getUserInfo(firebaseToken)
+    deviceId = get[0]
+    userId = get[1]
+    
+    directory = str(userId) + '/' + str(deviceId)
+    filename = "file.html"
+    file_path = os.path.join(directory, filename)
+    if not os.path.isdir(directory):
+        os.mkdir(directory)
+    file = open(file_path, "w")
+    file.write(file)
+    file.close()
+
+def save_sound_prediction(predictions, firebaseToken):
     print('\n', predictions, '\n')
     # return predictions
     soundArr = list(set(predictions))
@@ -30,14 +46,16 @@ def save_sound_prediction(predictions, firebaseToken, latitude, longitude):
             soundStr += ele + ', '
         index = index + 1
     
-    record = getLastestRecord(firebaseToken)
+    record = getLastPrediction(firebaseToken)
+    
+    print(record)
     
     avg_heartbeat = record[0]
     date_time = record[1]
     # latitude = record[3]
     # longitude = record[4]
     deviceId = record[4]
-    # userId = record[5]
+    userId = record[5]
     prediction = record[6]
     recordId = record[7]
         
@@ -46,9 +64,9 @@ def save_sound_prediction(predictions, firebaseToken, latitude, longitude):
     else:
         prediction = prediction + " No dangerous predicted in audio."
 
-    updatePrediction(recordId, prediction, latitude, longitude)
+    updatePrediction(recordId, prediction)
     
-    return [avg_heartbeat, date_time, latitude, longitude, deviceId, prediction]
+    return [avg_heartbeat, date_time, deviceId, prediction, userId]
 
 def run_sound_predict(file, firebaseToken):
     RATE = params.SAMPLE_RATE
