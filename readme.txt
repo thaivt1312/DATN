@@ -5,8 +5,8 @@ cd datn
     This project is running with python 3.10, please upgrade or downgrade to 3.10 for best run
     a. Database
         This database will be run in mysql at localhost
-        Import datn/server/db.sql to your local database
-        Open config/db_connect and replace with your host/port/user/password/database
+        Import server/db.sql to your local database
+        Open server/config/db_connect and replace with your host/port/user/password/database
     b. Server
         - Prepare the first running:
             cd server 
@@ -37,6 +37,9 @@ cd datn
     npm i
     npm run dev
     => Web is running at http://localhost:5173/
+    Login with admin account: 
+        username: admin 
+        password: admin
 
 4. System:
     When you run app and done access to all permissions, the server will start sending messages through firebase to the device.
