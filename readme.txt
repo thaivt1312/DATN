@@ -32,7 +32,13 @@ cd hrv_server
     The app need to be always running
     On your first time, please click all four buttons to request permissions to record audio, measure heart rate and get your current location. Please choose allow this app to access to those permissions.
 
-3. System:
+3. Run web:
+    cd web
+    npm i
+    npm run dev
+    => Web is running at http://localhost:5173/
+
+4. System:
     When you run app and done access to all permissions, the server will start sending messages through firebase to the device.
     Messages has 2 type: get_heart_rate (get heart rates and location) and get_audio_record.
     The get_heart_rate will be sent every 5 minutes from the start.
