@@ -8,9 +8,11 @@ import SideBar from "./components/NotificationSideBar";
 
 import Router from "./router";
 import { requestForToken } from "./firebase";
+import PermissionRequestModal from "./components/ShowPermissionRequest";
 
 function App() {
 	const [hasPermission, setHasPermission] = useState(false)
+	const [showPermissionRequest, setShowPermissionRequest] = useState(false)
 
 	function requestPermission() {
 		console.log('Requesting permission...');
@@ -18,6 +20,9 @@ function App() {
 			if (permission === 'granted') {
 				console.log('Notification permission granted.');
 				setHasPermission(true)
+				setShowPermissionRequest(false)
+			} else {
+				setShowPermissionRequest(true)
 			}
 		})
 	}
@@ -57,6 +62,12 @@ function App() {
 					: <></>
 			}
 			<Navbar />
+			{
+				showPermissionRequest &&
+				<PermissionRequestModal
+					open={showPermissionRequest}
+				/>
+			}
 			<Stack direction={"row"} flex={1}>
 				<div style={{
 					width: '80vw',

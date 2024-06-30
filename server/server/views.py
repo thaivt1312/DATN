@@ -18,7 +18,7 @@ from common.thread_control import updateThread, isNewThread, stopThread, setIsNe
 from common.interval import setInterval
 from common.constant import intervalTime
 
-from data_process.device_entity import checkDeviceInfo, getActiveStatus, getUserInfo, activeDevice, getCarerIdByUserId, getListDevice, getDeviceDetail, updateUserInformation, deactiveDevice
+from data_process.device_entity import checkDeviceInfo, getActiveStatus, getUserInfo, activeDevice, getCarerIdByUserId, getListDevice, getDeviceDetail, updateUserInformation, deactiveDevice, updateRunningStatus
 from data_process.prediction_entity import getLastPrediction, saveHeartRateData, getListPrediction
 
 from config.FCMManage import sendPush
@@ -76,6 +76,7 @@ def startRunning(userId, firebaseToken):
                     return
         sendPush('get', 'getHRData', [firebaseToken])
     setIsNewThread(userId, True)
+    updateRunningStatus(userId, 1)
     action()
     updateThread(userId, setInterval(intervalTime, action))
     
@@ -281,7 +282,9 @@ class stopRunning(APIView):
         deviceId = data.get('deviceId')
         firebaseToken = data.get('firebaseToken')
         user_data = getUserInfo(firebaseToken)
-        stopThread(user_data[1])
+        user_id = user_data[1]
+        stopThread(user_id)
+        updateRunningStatus(user_id, 0)
         response = {
             'msg' : "",
             "data": "",

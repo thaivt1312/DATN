@@ -128,12 +128,12 @@ def updateUserInformation(userId, userInformation):
     mycursor.close()
     mydb.close()
     
-def updateRunningStatus(deviceId, isRunning):
+def updateRunningStatus(userId, isRunning):
     mydb = connect_to_database()
     mycursor = mydb.cursor(buffered=True)
     
-    query = """UPDATE device SET is_running=%s WHERE device_id=%s"""
-    params=(isRunning, deviceId)
+    query = """UPDATE device SET is_running=%s WHERE id=%s"""
+    params=(isRunning, userId)
     mycursor.execute(query, params)
     mydb.commit()
         

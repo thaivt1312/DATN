@@ -42,7 +42,7 @@ def isNewThread(userId):
     if check:
         return threadArr[curIndex]['isNew']
     else:
-        return None
+        return True
     
 def setIsNewThread(userId, isNew):
     (curIndex, check) = findThreadIndex(userId)

@@ -30,10 +30,10 @@ class LoginApi(APIView):
             print(res[1], password)
             hashcode = hash_password(password)
             if hashcode == res[1]:
-                firebaseToken = data.get('firebaseToken')
-                updateFirebaseToken(res[0], firebaseToken)
                 token = create_token(res[0], res[2])
                 if res[2] == 0:
+                    firebaseToken = data.get('firebaseToken')
+                    updateFirebaseToken(res[0], firebaseToken)
                     response = {
                         "msg": LOGIN_SUCCESS,
                         "data": {
