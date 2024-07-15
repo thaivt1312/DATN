@@ -276,6 +276,9 @@ export default function DetailPage({
                                         Prediction
                                     </TableCell>
                                     <TableCell>
+                                        Location
+                                    </TableCell>
+                                    <TableCell>
                                         Time
                                     </TableCell>
                                     <TableCell>
@@ -291,6 +294,15 @@ export default function DetailPage({
                                             <TableRow key={prediction.id}>
                                                 <TableCell>
                                                     {prediction.prediction}
+                                                </TableCell>
+                                                <TableCell>
+                                                {
+                                                    prediction.latitude || prediction.longitude ?
+                                                    <a href={`https://www.google.com/maps?q=${prediction.latitude},${prediction.longitude}`}>
+                                                        Click to open in Map
+                                                    </a>
+                                                    : 'Cannot get location'
+                                                }
                                                 </TableCell>
                                                 <TableCell>
                                                     {prediction.time}
