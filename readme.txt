@@ -46,6 +46,5 @@ cd datn
     Messages has 2 type: get_heart_rate (get heart rates and location) and get_audio_record.
     The get_heart_rate will be sent every 5 minutes from the start.
     When received, the app will start getting heart rates, locations or recording audio and send back to the server.
-    Server will process the heart rate and predict stress level, if stress level is higher than 1, server will send messages to record 1 minute long audio.
     When received audio, the server will predict if anything dangerous happened in that audio.
-    Finnally, the server will return stress level and dangerous if any in the audio file.
+    Finnally, the server will return notification about dangerous sound if any in the audio file.
